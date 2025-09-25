@@ -1,9 +1,11 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
+using Unity.Collections;
 
 public class SetUpBoard : MonoBehaviour
 {
-
+    public PlacePiece piecePlacer;
     static int[,] fenStringInterpreter(string fen)
     {
 
@@ -37,7 +39,23 @@ public class SetUpBoard : MonoBehaviour
     void Start()
     {
         string startingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-        fenStringInterpreter(startingFen);
+        int[,] board = fenStringInterpreter(startingFen);
+         for (int rank = 0; rank < 8; rank++)
+            {
+                for (int file = 0; file < 8; file++)
+                {
+                    int piece = board[rank, file];
+                    if (piece != Piece.None)
+                    {
+                        // Translate rank/file into your square naming convention
+                        string squareName = $"Square ({file},{rank})";
+
+                        Debug.Log($"Placing pieceNum={piece} at {squareName}");
+                        // Ask PlacePiece to handle instantiation
+                        piecePlacer.Place(squareName, piece);
+                    }
+                }
+            }
     }
 
     // Update is called once per frame
