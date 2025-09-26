@@ -1,6 +1,7 @@
 using UnityEngine;
 
 public class PlacePiece : MonoBehaviour
+
 {
     // Prefabs (name them like FEN, e.g., "wpawn", "bpawn", etc.)
     public GameObject wpawnPrefab;
@@ -15,6 +16,8 @@ public class PlacePiece : MonoBehaviour
     public GameObject bbishopPrefab;
     public GameObject bkingPrefab;
     public GameObject bqueenPrefab;
+
+    public BoardState board;
 
     public Transform GetSquare(int x, int y)
     {
@@ -38,6 +41,12 @@ public class PlacePiece : MonoBehaviour
 
             GameObject piece = Instantiate(prefab, square.position, Quaternion.identity);
             piece.transform.SetParent(square);
+
+            string[] coords = squareName.Replace("Square (", "").Replace(")", "").Split(',');
+            int x = int.Parse(coords[0]);
+            int y = int.Parse(coords[1]);
+
+            board.state[x, y] = piecenum;
         }
         else
         {
