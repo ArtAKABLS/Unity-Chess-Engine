@@ -8,8 +8,6 @@ public class SetUpBoard : MonoBehaviour
     public PlacePiece piecePlacer;
     static int[,] fenStringInterpreter(string fen)
     {
-
-
         int[,] board = new int[8, 8];
         int file = 0;
         int rank = 0;
@@ -28,12 +26,16 @@ public class SetUpBoard : MonoBehaviour
             else if (FenPieceConverter.PieceFenMap.ContainsKey(c))
             {
                 int piece = FenPieceConverter.PieceFenMap[c];
-                board[rank, file] = piece;
+
+                // Invert the rank so 0 = bottom (White’s first rank)
+                int invertedRank = 7 - rank;
+                board[invertedRank, file] = piece;
+
                 file++;
             }
         }
         return board;
-    }
+}
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

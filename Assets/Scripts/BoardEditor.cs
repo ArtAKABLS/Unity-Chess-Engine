@@ -6,6 +6,7 @@ using System.Linq;
 public class BoardEditor : Editor
 {
     private BoardState board;
+    private PlacePiece placer;
 
     private char[] fenChars;   // ['.', 'P', 'N', ...]
     private int[] fenValues;   // [0, Piece.Pawn|Piece.White, ...]
@@ -13,6 +14,9 @@ public class BoardEditor : Editor
     void OnEnable()
     {
         board = (BoardState)target;
+
+        // Find a PlacePiece in the scene (you could also drag one in manually if you prefer)
+        placer = Object.FindFirstObjectByType<PlacePiece>();
 
         // Add '.' for empty square at start
         fenChars = new char[] { '.' }.Concat(FenPieceConverter.PieceFenMap.Keys).ToArray();
@@ -26,7 +30,7 @@ public class BoardEditor : Editor
         GUILayout.Space(10);
         GUILayout.Label("Board State (FEN)", EditorStyles.boldLabel);
 
-        for (int y = 7; y >= 0; y--)
+        for (int y = 7; y >= 0; y--) // draw rows top to bottom
         {
             GUILayout.BeginHorizontal();
             for (int x = 0; x < 8; x++)
@@ -37,15 +41,50 @@ public class BoardEditor : Editor
                 int currentIndex = System.Array.IndexOf(fenValues, currentPiece);
                 if (currentIndex < 0) currentIndex = 0; // fallback to empty
 
-                int newIndex = EditorGUILayout.Popup(currentIndex,
+                int newIndex = EditorGUILayout.Popup(
+                    currentIndex,
                     fenChars.Select(c => c.ToString()).ToArray(),
                     GUILayout.Width(30));
 
                 if (newIndex != currentIndex)
                 {
                     Undo.RecordObject(board, "Edit Board State");
-                    board.state[x, y] = fenValues[newIndex];
+                    int newPiece = fenValues[newIndex];
+                    board.state[x, y] = newPiece;
                     EditorUtility.SetDirty(board);
+
+                    // --- NEW: place or clear piece on the board ---
+                    if (placer != null)
+                    {
+                        string squareName = $"Square ({x},{y})";
+
+                        // If clearing square, destroy existing piece children
+                        if (newPiece == Piece.None)
+                        {
+                            var square = placer.GetSquare(x, y);
+                            if (square != null)
+                            {
+                                foreach (Transform child in square)
+                                {
+                                    DestroyImmediate(child.gameObject);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // First clear old piece, then place new one
+                            var square = placer.GetSquare(x, y);
+                            if (square != null)
+                            {
+                                foreach (Transform child in square)
+                                {
+                                    DestroyImmediate(child.gameObject);
+                                }
+                            }
+
+                            placer.Place(squareName, newPiece);
+                        }
+                    }
                 }
             }
             GUILayout.EndHorizontal();

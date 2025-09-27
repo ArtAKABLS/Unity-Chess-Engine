@@ -39,14 +39,32 @@ public class PlacePiece : MonoBehaviour
                 return;
             }
 
+            // 1. Instantiate the piece at the square's position
             GameObject piece = Instantiate(prefab, square.position, Quaternion.identity);
+            
+            // 2. Set the square as the piece's parent
             piece.transform.SetParent(square);
 
+            // 3. *** CRUCIAL STEP: Set the pieceValue on the MovePiece script ***
+            MovePiece moveScript = piece.GetComponent<MovePiece>();
+            if (moveScript != null)
+            {
+                
+                // Also ensures the piece has a reference to the global board state
+                if (board != null)
+                {
+                    moveScript.boardState = board; 
+                }
+                
+                // Ensure MovePiece knows the parent transform for detachment
+                moveScript.boardTransform = transform;
+            }
+
+            // 4. Update BoardState array for this initial placement
             string[] coords = squareName.Replace("Square (", "").Replace(")", "").Split(',');
             int x = int.Parse(coords[0]);
             int y = int.Parse(coords[1]);
-
-            board.state[x, y] = piecenum;
+            board.state[x, y] = piecenum; 
         }
         else
         {
